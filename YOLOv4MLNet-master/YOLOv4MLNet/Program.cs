@@ -27,28 +27,10 @@ namespace YOLOv4MLNet
 
         static readonly string[] classesNames = new string[] { "person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed", "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush" };
 
-        /*static async Task<resultInfo> getResultInfo(string imageName, string imageFolder)
+        //static List<resultInfo> arResult = new List<resultInfo>();
+        public static List<resultInfo> ImageRecognitionAsync (string imageFolder)
         {
-            using (var bitmap = new Bitmap(Image.FromFile(Path.Combine(imageFolder, imageName))))
-            {
-                var predict = predictionEngine.Predict(new YoloV4BitmapData() { Image = bitmap });
-                var results = predict.GetResults(classesNames, 0.3f, 0.7f);
-                var objClasses = new List<string>();
-                foreach (var res in results)
-                {
-                    if (!objClasses.Contains(res.Label))
-                    {
-                        objClasses.Add(res.Label);
-                    }
-                }
-                await Task.FromResult(new resultInfo(results, objClasses));
-                Console.WriteLine("*");
-            }
-        }*/
-        static List<resultInfo> arResult = new List<resultInfo>();
-        public static async Task ImageRecognitionAsync (string imageFolder )
-        {
-            
+            List<resultInfo> arResult = new List<resultInfo>();
             Directory.CreateDirectory(imageOutputFolder);
             MLContext mlContext = new MLContext();
             
@@ -83,7 +65,6 @@ namespace YOLOv4MLNet
             var model = pipeline.Fit(mlContext.Data.LoadFromEnumerable(new List<YoloV4BitmapData>()));
 
             // Create prediction engine
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<YoloV4BitmapData, YoloV4Prediction>(model);
 
             // save model
             //mlContext.Model.Save(model, predictionEngine.OutputSchema, Path.ChangeExtension(modelPath, "zip"));
@@ -91,16 +72,16 @@ namespace YOLOv4MLNet
 
             string[] pictures = Directory.GetFiles(imageFolder);
        
-            Console.WriteLine("start");
             var ab = new ActionBlock<string> (async imageName =>
-            {
-                using (var bitmap = await Task.Factory.StartNew(() => new Bitmap(Image.FromFile(imageName))))
+            {               
+                var predictionEngine = mlContext.Model.CreatePredictionEngine<YoloV4BitmapData, YoloV4Prediction>(model);
+
+                using (var bitmap = new Bitmap(Image.FromFile(imageName)))
                 {
-                    Console.Write("-");
                     var t = new Random();
                     await Task.Delay(t.Next(500));
                     var predict = predictionEngine.Predict(new YoloV4BitmapData() { Image = bitmap });
-                    var results = await Task.Factory.StartNew(() => predict.GetResults(classesNames, 0.3f, 0.7f));
+                    var results = predict.GetResults(classesNames, 0.3f, 0.7f);
                     var objClasses = new List<string>();
                     foreach (var res in results)
                     {
@@ -126,52 +107,25 @@ namespace YOLOv4MLNet
             },
             new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = 3
+                MaxDegreeOfParallelism = 4
             });
-
-            /*var buf = new BufferBlock<string>();
-            buf.LinkTo(ab);*/
-
-            //Parallel.For(0,pictures.Length,i=>buf.Post(pictures[i]));
             Parallel.For(0, pictures.Length,  i => ab.Post(pictures[i]));
             ab.Complete();
-
-            //buf.Complete();
-
-            //}
-            //await ab.Completion;
             ab.Completion.Wait();
-            //Task.WhenAll(ab.Completion);
-            //ab.Completion;
-            //await ab.Completion;
-           /* Task task;
-            do
-            {
-                task = ab.Completion;
-            } while (!task.IsFaulted);*/
-            Console.WriteLine("end");
-        }
-
-        public static void RunRecognitionAsync(string imageFolder)
-        {
-            var sw = new Stopwatch();
-            sw.Start();
-            var taskarResult =ImageRecognitionAsync(@"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images");
-           // Task.WhenAll(taskarResult);
-            //taskarResult.Wait();
-            sw.Stop();
-            Console.WriteLine($"Done in {sw.ElapsedMilliseconds}ms.");
-            foreach (resultInfo item in arResult)
-            {
-                //Console.WriteLine(++percent / arResult.Count * 100 + "%");
-                resultInfo.printResult();
-            }
-            Console.ReadLine();
+            return arResult;
         }
 
         static void Main()
         {
-            RunRecognitionAsync(@"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images");
+            var sw = new Stopwatch();
+            sw.Start();
+            var arResult = ImageRecognitionAsync(@"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images");
+            sw.Stop();
+            Console.WriteLine($"Done in {sw.ElapsedMilliseconds}ms.");
+            foreach (resultInfo item in arResult)
+            {
+                resultInfo.printResult();
+            }
         }
     }
 }
