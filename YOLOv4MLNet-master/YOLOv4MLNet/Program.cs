@@ -9,12 +9,17 @@ using System.Threading.Tasks.Dataflow;
 using YOLOv4MLNet.DataStructures;
 using static Microsoft.ML.Transforms.Image.ImageResizingEstimator;
 using System.Threading;
+using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Components;
+//using Microsoft.AspNetCore.Components;
 
 namespace YOLOv4MLNet
 {
     //https://towardsdatascience.com/yolo-v4-optimal-speed-accuracy-for-object-detection-79896ed47b50
     class Program
     {
+        static CancellationTokenSource cancelTokenSource;
+
         // model is available here:
         // https://github.com/onnx/models/tree/master/vision/object_detection_segmentation/yolov4
         const string modelPath = @"C:\Users\monul\OneDrive\Desktop\4kurs\YOLOv4MLNet-master\model\yolov4.onnx";
@@ -27,10 +32,23 @@ namespace YOLOv4MLNet
 
         static readonly string[] classesNames = new string[] { "person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed", "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush" };
 
-        //static List<resultInfo> arResult = new List<resultInfo>();
-        public static List<resultInfo> ImageRecognitionAsync (string imageFolder)
+        static void ShowProgress(  int len)
         {
-            List<resultInfo> arResult = new List<resultInfo>();
+            sem.Wait();
+            try
+            {
+                Interlocked.Increment(ref percent);
+                Console.WriteLine((float)percent / len * 100 + "%");
+            }
+            finally
+            {
+                sem.Release();
+            }
+        }
+        //static List<resultInfo> arResult = new List<resultInfo>();
+        public static async Task RecognizeAsync (string imageFolder, ConcurrentQueue<ResultInfo> arResult,Action<int> showProgress , CancellationToken token)
+        {
+            /*List<ResultInfo> arResult = new List<ResultInfo>();*/
             Directory.CreateDirectory(imageOutputFolder);
             MLContext mlContext = new MLContext();
             
@@ -72,14 +90,11 @@ namespace YOLOv4MLNet
 
             string[] pictures = Directory.GetFiles(imageFolder);
        
-            var ab = new ActionBlock<string> (async imageName =>
+            var ab = new ActionBlock<string> ( imageName =>
             {               
                 var predictionEngine = mlContext.Model.CreatePredictionEngine<YoloV4BitmapData, YoloV4Prediction>(model);
-
                 using (var bitmap = new Bitmap(Image.FromFile(imageName)))
                 {
-                    var t = new Random();
-                    await Task.Delay(t.Next(500));
                     var predict = predictionEngine.Predict(new YoloV4BitmapData() { Image = bitmap });
                     var results = predict.GetResults(classesNames, 0.3f, 0.7f);
                     var objClasses = new List<string>();
@@ -87,44 +102,45 @@ namespace YOLOv4MLNet
                     {
                         if (!objClasses.Contains(res.Label))
                         {
-                            await Task.Factory.StartNew(() => objClasses.Add(res.Label));
+                             objClasses.Add(res.Label);
                         }
                     }
-                    await Task.Factory.StartNew(() => arResult.Add(new resultInfo(results, objClasses)));
-                    sem.Wait();
-                    try
-                    {
-                        Interlocked.Increment(ref percent);
-                        Console.WriteLine((float)percent / pictures.Length * 100 + "%");
-                    }
-                    finally
-                    {
-                       sem.Release();
-                    }
+                    arResult.Enqueue(new ResultInfo(results, objClasses));
+                    showProgress( pictures.Length);
                 }
-                
-                    
             },
             new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = 4
+                MaxDegreeOfParallelism = 4,
+                CancellationToken = token
             });
             Parallel.For(0, pictures.Length,  i => ab.Post(pictures[i]));
             ab.Complete();
-            ab.Completion.Wait();
-            return arResult;
+            await ab.Completion;
         }
 
         static void Main()
         {
-            var sw = new Stopwatch();
-            sw.Start();
-            var arResult = ImageRecognitionAsync(@"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images");
-            sw.Stop();
-            Console.WriteLine($"Done in {sw.ElapsedMilliseconds}ms.");
-            foreach (resultInfo item in arResult)
+            cancelTokenSource = new CancellationTokenSource();
+            CancellationToken token = cancelTokenSource.Token;
+            Console.CancelKeyPress += (s, e) =>
             {
-                resultInfo.printResult();
+                Console.WriteLine("Cancel");
+                cancelTokenSource.Cancel();
+                e.Cancel = false;
+            };
+            ConcurrentQueue<ResultInfo> arResult = new ConcurrentQueue<ResultInfo>();
+            string imageFolder = @"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images";
+           /* var sw = new Stopwatch();*/
+           /* sw.Start();*/
+            Task.WaitAll( RecognizeAsync(imageFolder,arResult,ShowProgress,token));
+            /*sw.Stop();
+            Console.WriteLine($"Done in {sw.ElapsedMilliseconds}ms.");*/
+
+            ResultInfo curItem;
+            while (arResult.TryDequeue(out curItem))
+            {
+                curItem.printResult();
             }
         }
     }

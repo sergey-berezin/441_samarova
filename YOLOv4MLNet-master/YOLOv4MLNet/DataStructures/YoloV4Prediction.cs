@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 namespace YOLOv4MLNet.DataStructures
 {
@@ -68,7 +70,7 @@ namespace YOLOv4MLNet.DataStructures
                 {
                     for (int boxX = 0; boxX < outputSize; boxX++)
                     {
-                        for (int a = 0; a < anchorsCount; a++)
+                        var ab = new ActionBlock<int>(async a =>
                         {
                             var offset = (boxY * outputSize * (classesCount + 5) * anchorsCount) + (boxX * (classesCount + 5) * anchorsCount) + a * (classesCount + 5);
                             var predBbox = pred.Skip(offset).Take(classesCount + 5).ToArray();
@@ -116,7 +118,7 @@ namespace YOLOv4MLNet.DataStructures
                             orgY1 = Math.Max(orgY1, 0);
                             orgX2 = Math.Min(orgX2, org_w - 1);
                             orgY2 = Math.Min(orgY2, org_h - 1);
-                            if (orgX1 > orgX2 || orgY1 > orgY2) continue; // invalid_mask
+                            if (orgX1 > orgX2 || orgY1 > orgY2) return; // invalid_mask
 
                             // (4) discard some invalid boxes
                             // TODO
@@ -129,7 +131,14 @@ namespace YOLOv4MLNet.DataStructures
                             {
                                 postProcesssedResults.Add(new float[] { orgX1, orgY1, orgX2, orgY2, scoreMaxCat, scores.IndexOf(scoreMaxCat) });
                             }
-                        }
+                        },
+                        new ExecutionDataflowBlockOptions
+                        {
+                            MaxDegreeOfParallelism = 4
+                        });
+                        Parallel.For(0, anchorsCount, a => ab.Post(a));
+                        ab.Complete();
+                        ab.Completion.Wait();
                     }
                 }
             }
