@@ -30,7 +30,7 @@ namespace WpfTask2
     public partial class MainWindow : Window
     {
         ConcurrentQueue<ResultInfo> arResult;
-
+        delegate void pictureHandlerDelegate();
         private Dispatcher dispatcher;
         ConcurrentQueue<ResultInfo> queue;
         public event PropertyChangedEventHandler PropertyChanged;
@@ -40,12 +40,12 @@ namespace WpfTask2
         public MainWindow()
         {
             //ClassTask1.cancelTokenSource.Cancel();
-            
+            InitializeComponent();
             dispatcher = Dispatcher.CurrentDispatcher;
             pictureRecognizer = new ClassTask1();
             queue = new ConcurrentQueue<ResultInfo>();
-            pictureRecognizer.OnProcessedPicture += (s) => { queue.Enqueue(s); dispatcher.Invoke(OnProcessedPictureHandler, DispatcherPriority.Background); };
-            InitializeComponent();
+            //handler = OnProcessedPictureHandler;
+            pictureRecognizer.OnProcessedPicture += (s) => { queue.Enqueue(s); dispatcher.BeginInvoke(DispatcherPriority.Background, new pictureHandlerDelegate(OnProcessedPictureHandler)); };
             //ListBoxResultInfo.SelectionChanged +=
             /*ListBoxPictures.Items.Add(new { Img = new BitmapImage(new Uri(@"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images\ski.jpg")) });
             ListBoxPictures.Items.Add(new { Img = new BitmapImage(new Uri(@"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images\ski.jpg")) });
@@ -76,7 +76,15 @@ namespace WpfTask2
         {
             if (queue.TryDequeue(out ResultInfo curItem))
             {
-                ListBoxResultInfo.Items.Add(curItem.toString());
+                for(int i = 0; i<curItem.classes.Count; i++)
+                {
+                    
+                    if (ListBoxResultInfo.Items.IndexOf(curItem.classes[i])==-1)
+                    {
+                        ListBoxResultInfo.Items.Add(curItem.classes[i]);
+
+                    }
+                }
                 /*pictureLibrary.AddPictureInfo(new PictureInfo(result));*/
                 OnPropertyChanged(nameof(ListBoxResultInfo));
             }
@@ -97,13 +105,14 @@ namespace WpfTask2
         {
             ListBoxPictures.Items.Clear();
             ResultInfo[] curArResult = arResult.ToArray();
-            List<string> curClasses = ListBoxResultInfo.SelectedItem.ToString().Split('\n').ToList();
-            curClasses.Sort();
-            curClasses.RemoveAt(0);
+            //List<string> curClasses = ListBoxResultInfo.SelectedItem.ToString().Split('\n').ToList();
+            string curClass = ListBoxResultInfo.SelectedItem.ToString();
+            //curClasses.Sort();
+            //curClasses.RemoveAt(0);
 
             foreach(var item in curArResult)
             {
-                if(item.CompareClasses(curClasses))
+                if(item.CompareClasses(curClass))
                     ListBoxPictures.Items.Add(new { Img = new BitmapImage(new Uri(item.imageName))});
             }
             //ListBoxResultInfo.Items.Add(curClasses);

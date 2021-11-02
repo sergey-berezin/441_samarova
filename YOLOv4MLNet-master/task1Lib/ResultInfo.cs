@@ -41,17 +41,24 @@ namespace task1Lib
             return str;
         }
 
-        public bool CompareClasses(List<string> curClasses)
+        //public bool CompareClasses(List<string> curClasses)
+        public bool CompareClasses(string curClass)
         {
-            if (this.classes.Count != curClasses.Count)
-                return false;
-            this.classes.Sort();
-            for(int i = 0; i<this.classes.Count; i++)
+            //if (this.classes.Count != curClasses.Count)
+            //return false;
+            //this.classes.Sort();
+            //for(int i = 0; i<this.classes.Count; i++)
+            //{
+            //if (Convert.ToBoolean(string.Compare(this.classes[i], curClasses[i])))
+            //return false;
+            //}
+            //return true;
+            for (int i = 0; i < this.classes.Count; i++)
             {
-                if (Convert.ToBoolean(string.Compare(this.classes[i], curClasses[i])))
-                    return false;
+                if (!Convert.ToBoolean(string.Compare(this.classes[i], curClass)))
+                    return true;
             }
-            return true;
+            return false;
         }
     }
 }
