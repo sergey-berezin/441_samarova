@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-//using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,9 +23,6 @@ using task1Lib;
 
 namespace WpfTask2
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         ConcurrentQueue<ResultInfo> arResult;
@@ -39,18 +35,12 @@ namespace WpfTask2
 
         public MainWindow()
         {
-            //ClassTask1.cancelTokenSource.Cancel();
             InitializeComponent();
             dispatcher = Dispatcher.CurrentDispatcher;
             pictureRecognizer = new ClassTask1();
             queue = new ConcurrentQueue<ResultInfo>();
-            //handler = OnProcessedPictureHandler;
             pictureRecognizer.OnProcessedPicture += (s) => { queue.Enqueue(s); dispatcher.BeginInvoke(DispatcherPriority.Background, new pictureHandlerDelegate(OnProcessedPictureHandler)); };
-            //ListBoxResultInfo.SelectionChanged +=
-            /*ListBoxPictures.Items.Add(new { Img = new BitmapImage(new Uri(@"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images\ski.jpg")) });
-            ListBoxPictures.Items.Add(new { Img = new BitmapImage(new Uri(@"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images\ski.jpg")) });
-            ListBoxPictures.Items.Add(new { Img = new BitmapImage(new Uri(@"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images\ski.jpg")) });
-        */}
+           }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -62,14 +52,7 @@ namespace WpfTask2
             if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 string imageFolder = fbd.SelectedPath;
-                //ListBoxResultInfo.Items.Add(folder);
                 pictureRecognizer.RecognizeAsync(imageFolder, arResult, ClassTask1.ShowProgress, ClassTask1.token);
-                /*ResultInfo curItem;
-                while (arResult.TryDequeue(out curItem))
-                {
-                    ListBoxResultInfo.Items.Add(curItem.toString());
-                }
-                ListBoxResultInfo.Items.Add("end");*/
             }
         }
         private void OnProcessedPictureHandler()
@@ -85,7 +68,6 @@ namespace WpfTask2
 
                     }
                 }
-                /*pictureLibrary.AddPictureInfo(new PictureInfo(result));*/
                 OnPropertyChanged(nameof(ListBoxResultInfo));
             }
         }
@@ -105,24 +87,13 @@ namespace WpfTask2
         {
             ListBoxPictures.Items.Clear();
             ResultInfo[] curArResult = arResult.ToArray();
-            //List<string> curClasses = ListBoxResultInfo.SelectedItem.ToString().Split('\n').ToList();
             string curClass = ListBoxResultInfo.SelectedItem.ToString();
-            //curClasses.Sort();
-            //curClasses.RemoveAt(0);
 
             foreach(var item in curArResult)
             {
                 if(item.CompareClasses(curClass))
                     ListBoxPictures.Items.Add(new { Img = new BitmapImage(new Uri(item.imageName))});
             }
-            //ListBoxResultInfo.Items.Add(curClasses);
-            //ListBoxPictures.Items.Add(new { Img = new BitmapImage(new Uri(@"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Images\ski.jpg")) });
         }
-
-        /* public void ApplySelection(object selectedItem)
-         {
-             pictureRecognizer.SelectedItem = selectedItem;
-             OnPropertyChanged(nameof(ShowedImages));
-         }*/
     }
 }

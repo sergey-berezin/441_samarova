@@ -22,9 +22,7 @@ namespace task1Lib
     // model is available here:
     // https://github.com/onnx/models/tree/master/vision/object_detection_segmentation/yolov4
     const string modelPath = @"C:\Users\monul\OneDrive\Desktop\4kurs\YOLOv4MLNet-master\model\yolov4.onnx";
-        //const string modelPath = @"C:\Users\monul\OneDrive\Desktop\yolov4\yolov4.onnx";
 
-        //const string imageFolder = @"Assets\Images";
         static SemaphoreSlim sem = new SemaphoreSlim(1);
         static int percent = 0;
         const string imageOutputFolder = @"C:\Users\monul\OneDrive\Desktop\lab\441_samarova\YOLOv4MLNet-master\YOLOv4MLNet\Assets\Output";
@@ -44,10 +42,8 @@ namespace task1Lib
                 sem.Release();
             }
         }
-        //static List<resultInfo> arResult = new List<resultInfo>();
         public async Task RecognizeAsync(string imageFolder, ConcurrentQueue<ResultInfo> arResult, Action<int> showProgress, CancellationToken token)
         {
-            /*List<ResultInfo> arResult = new List<ResultInfo>();*/
             Directory.CreateDirectory(imageOutputFolder);
             MLContext mlContext = new MLContext();
 
@@ -80,11 +76,6 @@ namespace task1Lib
 
             // Fit on empty list to obtain input data schema
             var model = pipeline.Fit(mlContext.Data.LoadFromEnumerable(new List<YoloV4BitmapData>()));
-
-            // Create prediction engine
-
-            // save model
-            //mlContext.Model.Save(model, predictionEngine.OutputSchema, Path.ChangeExtension(modelPath, "zip"));
 
 
             string[] pictures = Directory.GetFiles(imageFolder);
