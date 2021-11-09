@@ -1,0 +1,23 @@
+﻿<Window x:Class="WpfTask2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfTask2"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Button Content="Run classification" HorizontalAlignment="Left" Height="45" Margin="515,260,0,0" VerticalAlignment="Top" Width="268" Click="Button_Click"/>
+        <ListBox Name="ListBoxResultInfo" HorizontalAlignment="Left" Height="245" Margin="515,10,0,0" VerticalAlignment="Top" Width="268" SelectionChanged="ListBoxResultInfo_SelectionChanged"/>
+        <Button Content="Stop recognizing" HorizontalAlignment="Left" Margin="515,310,0,0" VerticalAlignment="Top" Width="268" Height="45" Click="Button_Click_1"/>
+        <ListBox ItemsSource="{Binding}" Margin="10,10,283.333,65.667" Width="490" Name="ListBoxPictures">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image MaxWidth="455" MaxHeight="300" Source="{Binding Img}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</Window>
