@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -20,7 +21,11 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using task1Lib;
-
+using task1Lib.DataStructures;
+using Task3;
+//using System.Drawing.Imaging;
+//using PixelFormat = System.Drawing.Imaging.PixelFormat;
+//using Task3_DB_FIX;
 namespace WpfTask2
 {
     public partial class MainWindow : Window
@@ -32,6 +37,8 @@ namespace WpfTask2
         public event PropertyChangedEventHandler PropertyChanged;
 
         ClassTask1 pictureRecognizer;
+
+        PictureLibraryContext db = new PictureLibraryContext();
 
         public MainWindow()
         {
@@ -59,16 +66,42 @@ namespace WpfTask2
         {
             if (queue.TryDequeue(out ResultInfo curItem))
             {
-                for(int i = 0; i<curItem.classes.Count; i++)
+                var bitmap = new Bitmap(System.Drawing.Image.FromFile(curItem.imageName));
+                IReadOnlyList<YoloV4Result> results = (IReadOnlyList<YoloV4Result>)curItem.result;
+
+
+                foreach (var res in results)
                 {
-                    
-                    if (ListBoxResultInfo.Items.IndexOf(curItem.classes[i])==-1)
+                    Console.WriteLine("Start");
+                    // draw predictions
+                    var x1 = res.BBox[0];
+                    var y1 = res.BBox[1];
+                    var x2 = res.BBox[2];
+                    var y2 = res.BBox[3];
+                    System.Drawing.Rectangle rec = new System.Drawing.Rectangle((int)x1, (int)y1, (int)(x2 - x1), (int)(y2 - y1));
+                    Bitmap nb = new Bitmap(rec.Width, rec.Height/*, PixelFormat.Format32bppRgb*/);
+                    using (var g = Graphics.FromImage(nb))
+                    {
+                        g.DrawImage(bitmap, -rec.X, -rec.Y);
+                    }
+                    //return nb;
+                    Transfer transfer = new Transfer();
+                    //Image<Bgr, Byte> img1 = nb.ToImage<Bgr, byte>();
+                    //transfer.image = nb;
+                    transfer.TypeName = res.Label;
+                    db.AddPictureInfo(transfer);
+                }
+
+                /*for (int i = 0; i < curItem.classes.Count; i++)
+                {
+
+                    if (ListBoxResultInfo.Items.IndexOf(curItem.classes[i]) == -1)
                     {
                         ListBoxResultInfo.Items.Add(curItem.classes[i]);
 
                     }
                 }
-                OnPropertyChanged(nameof(ListBoxResultInfo));
+                OnPropertyChanged(nameof(ListBoxResultInfo));*/
             }
         }
 

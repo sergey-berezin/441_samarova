@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
   <Import Project="packages\Microsoft.ML.OnnxRuntime.1.9.0\build\netstandard2.0\Microsoft.ML.OnnxRuntime.props" Condition="Exists('packages\Microsoft.ML.OnnxRuntime.1.9.0\build\netstandard2.0\Microsoft.ML.OnnxRuntime.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -41,6 +42,12 @@
     <Reference Include="CommonServiceLocator, Version=2.0.2.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
       <HintPath>packages\CommonServiceLocator.2.0.2\lib\net47\CommonServiceLocator.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="GalaSoft.MvvmLight, Version=5.4.1.0, Culture=neutral, PublicKeyToken=e7570ab207bcb616, processorArchitecture=MSIL">
       <HintPath>packages\MvvmLightLibs.5.4.1.1\lib\net45\GalaSoft.MvvmLight.dll</HintPath>
     </Reference>
@@ -57,7 +64,9 @@
     <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
     </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
     </Reference>
@@ -131,6 +140,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Task3\Task3.csproj">
+      <Project>{2647e2e0-4d7f-40fd-b6b9-d30ad599d1b4}</Project>
+      <Name>Task3</Name>
+    </ProjectReference>
     <ProjectReference Include="..\YOLOv4MLNet-master\task1Lib\task1Lib.csproj">
       <Project>{f0a8c64d-ff50-4fb7-917e-3778966c28f4}</Project>
       <Name>task1Lib</Name>
@@ -145,6 +158,9 @@
     <Error Condition="!Exists('packages\Microsoft.ML.OnnxRuntime.Managed.1.9.0\build\netstandard2.0\Microsoft.ML.OnnxRuntime.Managed.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.ML.OnnxRuntime.Managed.1.9.0\build\netstandard2.0\Microsoft.ML.OnnxRuntime.Managed.targets'))" />
     <Error Condition="!Exists('packages\Microsoft.ML.OnnxRuntime.1.9.0\build\netstandard2.0\Microsoft.ML.OnnxRuntime.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.ML.OnnxRuntime.1.9.0\build\netstandard2.0\Microsoft.ML.OnnxRuntime.props'))" />
     <Error Condition="!Exists('packages\Microsoft.ML.OnnxRuntime.1.9.0\build\netstandard2.0\Microsoft.ML.OnnxRuntime.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.ML.OnnxRuntime.1.9.0\build\netstandard2.0\Microsoft.ML.OnnxRuntime.targets'))" />
+    <Error Condition="!Exists('packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
   </Target>
   <Import Project="packages\Microsoft.ML.OnnxRuntime.1.9.0\build\netstandard2.0\Microsoft.ML.OnnxRuntime.targets" Condition="Exists('packages\Microsoft.ML.OnnxRuntime.1.9.0\build\netstandard2.0\Microsoft.ML.OnnxRuntime.targets')" />
+  <Import Project="packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
 </Project>

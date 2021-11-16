@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfTask2", "WpfTask2.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "task1Lib", "..\YOLOv4MLNet-master\task1Lib\task1Lib.csproj", "{F0A8C64D-FF50-4FB7-917E-3778966C28F4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task3", "..\Task3\Task3.csproj", "{2647E2E0-4D7F-40FD-B6B9-D30AD599D1B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,14 @@ Global
 		{F0A8C64D-FF50-4FB7-917E-3778966C28F4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F0A8C64D-FF50-4FB7-917E-3778966C28F4}.Release|x86.ActiveCfg = Release|Win32
 		{F0A8C64D-FF50-4FB7-917E-3778966C28F4}.Release|x86.Build.0 = Release|Win32
+		{2647E2E0-4D7F-40FD-B6B9-D30AD599D1B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2647E2E0-4D7F-40FD-B6B9-D30AD599D1B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2647E2E0-4D7F-40FD-B6B9-D30AD599D1B4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2647E2E0-4D7F-40FD-B6B9-D30AD599D1B4}.Debug|x86.Build.0 = Debug|Any CPU
+		{2647E2E0-4D7F-40FD-B6B9-D30AD599D1B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2647E2E0-4D7F-40FD-B6B9-D30AD599D1B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2647E2E0-4D7F-40FD-B6B9-D30AD599D1B4}.Release|x86.ActiveCfg = Release|Any CPU
+		{2647E2E0-4D7F-40FD-B6B9-D30AD599D1B4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
