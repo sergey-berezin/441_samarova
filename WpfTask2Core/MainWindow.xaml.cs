@@ -157,14 +157,21 @@ namespace WpfTask2Core
             {
                 //ListBoxPictures.Items.Add(result[i].image);
 
-                
-                byte[] byte_img = Encoding.ASCII.GetBytes(result[i].image);
+                byte[] byte_img = result[i];
                 MemoryStream ms = new MemoryStream(byte_img);
                 //image.StreamSource = ms;
                 var image = Bitmap.FromStream(ms) as Bitmap;
                 //Bitmap bmp = (Bitmap)System.Drawing.Image.FromStream(ms);
                 //System.Drawing.Image img =Image.FromStream(ms);
                 ListBoxPictures.Items.Add(new { Img = image });
+
+                /*byte[] byte_img = Encoding.ASCII.GetBytes(result[i].image);
+                MemoryStream ms = new MemoryStream(byte_img);
+                //image.StreamSource = ms;
+                var image = Bitmap.FromStream(ms) as Bitmap;
+                //Bitmap bmp = (Bitmap)System.Drawing.Image.FromStream(ms);
+                //System.Drawing.Image img =Image.FromStream(ms);
+                ListBoxPictures.Items.Add(new { Img = image });*/
             }
             /*ListBoxPictures.Items.Clear();
             ResultInfo[] curArResult = arResult.ToArray();
