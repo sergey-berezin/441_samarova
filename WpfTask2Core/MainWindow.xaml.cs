@@ -17,6 +17,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -155,15 +156,23 @@ namespace WpfTask2Core
             var result = db.GetPicturesByType(transfer).ToList();
             for (int i = 0; i < result.Count; i++)
             {
-                //ListBoxPictures.Items.Add(result[i].image);
 
                 byte[] byte_img = result[i];
+                //byte[] byte_img = Encoding.ASCII.GetBytes(result[i].image);
                 MemoryStream ms = new MemoryStream(byte_img);
-                //image.StreamSource = ms;
-                var image = Bitmap.FromStream(ms) as Bitmap;
-                //Bitmap bmp = (Bitmap)System.Drawing.Image.FromStream(ms);
-                //System.Drawing.Image img =Image.FromStream(ms);
-                ListBoxPictures.Items.Add(new { Img = image });
+                var bmp = Bitmap.FromStream(ms) as Bitmap;
+                var memory = new MemoryStream();
+                bmp.Save(memory, ImageFormat.Png);
+                memory.Position = 0;
+
+                var bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.StreamSource = memory;
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.EndInit();
+                bitmapImage.Freeze();
+
+                ListBoxPictures.Items.Add(new { Img =  bitmapImage});
 
                 /*byte[] byte_img = Encoding.ASCII.GetBytes(result[i].image);
                 MemoryStream ms = new MemoryStream(byte_img);
