@@ -89,6 +89,7 @@ namespace Task3_DB_
             }
         }
         public IEnumerable<byte[]> GetPicturesByType(Transfer transfer)
+        //public IEnumerable<Transfer> GetPicturesByType(Transfer transfer)
         {
             foreach (var p in Pictures.Where(p => p.Type.TypeName == transfer.TypeName))
             {
