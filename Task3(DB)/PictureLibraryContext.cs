@@ -91,13 +91,14 @@ namespace Task3_DB_
                 yield return transfer;
             }
         }
-        public IEnumerable<Transfer> GetPicturesByType(Transfer transfer)
+        public IEnumerable<byte[]> GetPicturesByType(Transfer transfer)
         {
             foreach (var p in Pictures.Where(p => p.Type.TypeName == transfer.TypeName))
             {
                 var new_transfer = new Transfer();
                 new_transfer.image = Convert.ToBase64String(p.image);
-                yield return new_transfer;
+                //yield return new_transfer;
+                yield return p.image;
             }
             /*foreach (var p in Pictures)
             {
