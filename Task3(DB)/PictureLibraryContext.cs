@@ -43,7 +43,6 @@ namespace Task3_DB_
 
             foreach (var p in Pictures.Where(p => p.rectangle == Convert.FromBase64String(transfer.rectangle)))
             {
-                //Entry(p).Reference("image").Load();
                 if (Convert.ToBase64String(p.image) == transfer.image)
                 {
                     return p.Id.ToString();
@@ -77,8 +76,6 @@ namespace Task3_DB_
             }
             p.image = Convert.FromBase64String(transfer.image);
             p.rectangle = Convert.FromBase64String(transfer.rectangle);
-            //p.HashCode = transfer.DataToBase64.GetHashCode();
-            //Details.Add(p.PictureInfoDetails);
             Pictures.Add(p);
             SaveChanges();
         }
@@ -100,6 +97,7 @@ namespace Task3_DB_
                 //yield return new_transfer;
                 yield return p.image;
             }
+
             /*foreach (var p in Pictures)
             {
                 if(p.Type.TypeName)
