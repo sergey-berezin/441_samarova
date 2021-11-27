@@ -30,20 +30,20 @@ namespace Task3_DB_
         public DbSet<PictureInfoDB> Pictures { get; set; }
 
         public DbSet<PictureTypeDB> Types { get; set; }
-        protected override void OnConfiguring(DbContextOptionsBuilder o) => o.UseSqlite("Data Source=C:\\Users\\monul\\OneDrive\\Desktop\\Новая папка\\441_samarova\\Task3(DB)\\PictureLibrary.db");
+        protected override void OnConfiguring(DbContextOptionsBuilder o) => o.UseSqlite("Data Source=C:\\Users\\monul\\OneDrive\\Desktop\\Новая папка\\441_samarova\\WpfTask2Core\\PictureLibrary.db");
         public PictureLibraryContext()
         {
             var folder = Environment.SpecialFolder.LocalApplicationData;
             var path = Environment.GetFolderPath(folder);
         }
-        public string FindPicture(Transfer transfer)
+        public string FindPicture(byte[] image, byte[] rectangle, string typeName)
         {
-            if (Pictures.Where(p => p.rectangle == Convert.FromBase64String(transfer.rectangle)).Count() == 0)
+            if (Pictures.Where(p => p.rectangle == rectangle).Count() == 0)
                 return null;
 
-            foreach (var p in Pictures.Where(p => p.rectangle == Convert.FromBase64String(transfer.rectangle)))
+            foreach (var p in Pictures.Where(p => p.rectangle == rectangle))
             {
-                if (Convert.ToBase64String(p.image) == transfer.image)
+                if (Convert.ToBase64String(p.image) == Convert.ToBase64String(image))
                 {
                     return p.Id.ToString();
                 }
@@ -59,52 +59,40 @@ namespace Task3_DB_
 
             SaveChanges();
         }
-        public void AddPictureInfo(Transfer transfer)
+        public void AddPictureInfo(byte[] image, byte[] rectangle, string typeName)
         {
             var p = new PictureInfoDB();
             var t = new PictureTypeDB();
             p.Type = new PictureTypeDB();
 
-            var query = Types.Where(p => transfer.TypeName == p.TypeName); //узнаем, есть ли такой тип в таблице Types
+            var query = Types.Where(p => typeName == p.TypeName); //узнаем, есть ли такой тип в таблице Types
             if (query.Count() > 0)
                 p.Type = query.First();
             else
             {
                 p.Type = new PictureTypeDB();
-                p.Type.TypeName = transfer.TypeName;
+                p.Type.TypeName = typeName;
                 Types.Add(p.Type);
             }
-            p.image = Convert.FromBase64String(transfer.image);
-            p.rectangle = Convert.FromBase64String(transfer.rectangle);
+            p.image = image;
+            p.rectangle = rectangle;
             Pictures.Add(p);
             SaveChanges();
         }
-        public IEnumerable<Transfer> GetAllContent()
+        public IEnumerable<string> GetAllContent()
         {
             foreach (var p in Types)
             {
-                var transfer = new Transfer();
-                transfer.TypeName = p.TypeName;
-                yield return transfer;
+                yield return p.TypeName;
             }
         }
-        public IEnumerable<byte[]> GetPicturesByType(Transfer transfer)
+        public IEnumerable<byte[]> GetPicturesByType(string typeName)
         {
-            foreach (var p in Pictures.Where(p => p.Type.TypeName == transfer.TypeName))
+            foreach (var p in Pictures.Where(p => p.Type.TypeName == typeName))
             {
-                var new_transfer = new Transfer();
-                new_transfer.image = Convert.ToBase64String(p.image);
-                //yield return new_transfer;
                 yield return p.image;
             }
 
-            /*foreach (var p in Pictures)
-            {
-                if(p.Type.TypeName)
-                var new_transfer = new Transfer();
-                transfer.image = p.image.ToString();
-                yield return transfer;
-            }*/
         }
     }
 }
