@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LibTask1Core.DataStructures;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,10 +8,10 @@ namespace LibTask1Core
     public class ResultInfo
     {
         public string imageName;
-        public object result;
+        public IReadOnlyList<YoloV4Result> result;
         public List<string> classes;
 
-        public ResultInfo(object new_result, List<string> new_classes, string new_imageName)
+        public ResultInfo(IReadOnlyList<YoloV4Result> new_result, List<string> new_classes, string new_imageName)
         {
             this.result = new_result;
             this.classes = new_classes;

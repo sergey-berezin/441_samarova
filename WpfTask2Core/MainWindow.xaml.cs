@@ -34,10 +34,13 @@ namespace WpfTask2Core
     /// </summary>
     public partial class MainWindow : Window
     {
+        Client client;
+
         ConcurrentQueue<ResultInfo> arResult;
         delegate void pictureHandlerDelegate();
         private Dispatcher dispatcher;
         ConcurrentQueue<ResultInfo> queue;
+        ConcurrentQueue<string> queueTypes;
         public event PropertyChangedEventHandler PropertyChanged;
 
         ClassTask1 pictureRecognizer;
@@ -48,25 +51,28 @@ namespace WpfTask2Core
         {
             InitializeComponent();
             dispatcher = Dispatcher.CurrentDispatcher;
+            client = new Client();
+
             pictureRecognizer = new ClassTask1();
             queue = new ConcurrentQueue<ResultInfo>();
-            pictureRecognizer.OnProcessedPicture += (s) => { queue.Enqueue(s); dispatcher.BeginInvoke(DispatcherPriority.Background, new pictureHandlerDelegate(OnProcessedPictureHandler)); };
-            var result = db.GetAllContent().ToList();
-            foreach(var elem in result)
-                ListBoxResultInfo.Items.Add(elem);
+            queueTypes = new ConcurrentQueue<String>();
+            client.OnProcessedPicture += (s) => { queueTypes.Enqueue(s); dispatcher.BeginInvoke(DispatcherPriority.Background, new pictureHandlerDelegate(OnProcessedTypeHandler)); };
+            client.OnServerIsUnreacheble += () => dispatcher.BeginInvoke(() => Warning());
+            LoadAllPictures();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            ClassTask1.cancelTokenSource = new CancellationTokenSource();
-            ClassTask1.token = ClassTask1.cancelTokenSource.Token;
-            arResult = new ConcurrentQueue<ResultInfo>();
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 string imageFolder = fbd.SelectedPath;
-                pictureRecognizer.RecognizeAsync(imageFolder, arResult, ClassTask1.ShowProgress, ClassTask1.token);
+                client.ScanDirectory(imageFolder);
             }
+        }
+        private void Warning()
+        {
+            System.Windows.Forms.MessageBox.Show("Server is unreacheble");
         }
         private void OnProcessedPictureHandler()
         {
@@ -122,34 +128,74 @@ namespace WpfTask2Core
 
         private void ListBoxResultInfo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ListBoxPictures.Items.Clear();
-            var result = db.GetPicturesByType(ListBoxResultInfo.SelectedItem.ToString()).ToList();
-            foreach(var elem in result)
+            if (ListBoxResultInfo.Items.Count > 0)
             {
+                ListBoxPictures.Items.Clear();
+                var result = db.GetPicturesByType(ListBoxResultInfo.SelectedItem.ToString()).ToList();
+                foreach (var elem in result)
+                {
 
-                byte[] byte_img = elem;
-                MemoryStream ms = new MemoryStream(byte_img);
-                var bmp = Bitmap.FromStream(ms) as Bitmap;
-                var memory = new MemoryStream();
-                bmp.Save(memory, ImageFormat.Png);
-                memory.Position = 0;
+                    byte[] byte_img = elem;
+                    MemoryStream ms = new MemoryStream(byte_img);
+                    var bmp = Bitmap.FromStream(ms) as Bitmap;
+                    var memory = new MemoryStream();
+                    bmp.Save(memory, ImageFormat.Png);
+                    memory.Position = 0;
 
-                var bitmapImage = new BitmapImage();
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = memory;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-                bitmapImage.Freeze();
+                    var bitmapImage = new BitmapImage();
+                    bitmapImage.BeginInit();
+                    bitmapImage.StreamSource = memory;
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapImage.EndInit();
+                    bitmapImage.Freeze();
 
-                ListBoxPictures.Items.Add(new { Img =  bitmapImage});
+                    ListBoxPictures.Items.Add(new { Img = bitmapImage });
 
+                }
             }
         }
 
-        private void Button_Click_2(object sender, RoutedEventArgs e)
+        private async void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            db.ClearDB();
-            ListBoxResultInfo.Items.Clear();
+            try
+            {
+                client.ClearDB();
+                ListBoxResultInfo.Items.Clear();
+                ListBoxPictures.Items.Clear();
+            }
+            catch
+            {
+                await dispatcher.BeginInvoke(() => Warning());
+            }
+        }
+        private void OnProcessedTypeHandler()
+        {
+            if (ClassTask1.token.IsCancellationRequested == false)
+            {
+                if (queueTypes.TryDequeue(out String curType))
+                {
+                    if (ListBoxResultInfo.Items.IndexOf(curType) == -1)
+                    {
+                        ListBoxResultInfo.Items.Add(curType);
+                        OnPropertyChanged(nameof(ListBoxResultInfo));
+                    }
+                }
+            }
+        }
+        public async void LoadAllPictures()
+        {
+            try
+            {
+                await foreach (var i in client.LoadAllPictures())
+                {
+                    queueTypes.Enqueue(i);
+                    dispatcher.Invoke(OnProcessedTypeHandler, DispatcherPriority.Background);
+                }
+            }
+            catch
+            {
+                await dispatcher.BeginInvoke(() => Warning());
+            }
         }
     }
 }
