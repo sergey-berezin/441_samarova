@@ -1,12 +1,9 @@
-﻿//using Contracts;
-using LibTask1Core;
+﻿using LibTask1Core;
 using LibTask1Core.DataStructures;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.ML;
 using Newtonsoft.Json;
-//using NeuralNetwork;
-//using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
