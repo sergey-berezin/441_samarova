@@ -57,6 +57,7 @@ namespace WpfTask2Core
             queue = new ConcurrentQueue<ResultInfo>();
             queueTypes = new ConcurrentQueue<String>();
             client.OnProcessedPicture += (s) => { queueTypes.Enqueue(s); dispatcher.BeginInvoke(DispatcherPriority.Background, new pictureHandlerDelegate(OnProcessedTypeHandler)); };
+            client.OnReadPicture += (s) => { queueTypes.Enqueue(s); dispatcher.BeginInvoke(DispatcherPriority.Background, new pictureHandlerDelegate(OnProcessedPictureHandler)); };
             client.OnServerIsUnreacheble += () => dispatcher.BeginInvoke(() => Warning());
             LoadAllPictures();
         }
@@ -76,42 +77,24 @@ namespace WpfTask2Core
         }
         private void OnProcessedPictureHandler()
         {
-            if (queue.TryDequeue(out ResultInfo curItem))
+            if (queueTypes.TryDequeue(out String curType))
             {
-                var bitmap = new Bitmap(System.Drawing.Image.FromFile(curItem.imageName));
-                IReadOnlyList<YoloV4Result> results = (IReadOnlyList<YoloV4Result>)curItem.result;
+                byte[] elem = Convert.FromBase64String(curType);
+                byte[] byte_img = elem;
+                MemoryStream ms = new MemoryStream(byte_img);
+                var bmp = Bitmap.FromStream(ms) as Bitmap;
+                var memory = new MemoryStream();
+                bmp.Save(memory, ImageFormat.Png);
+                memory.Position = 0;
 
+                var bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.StreamSource = memory;
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.EndInit();
+                bitmapImage.Freeze();
 
-                foreach (var res in results)
-                {
-                    Console.WriteLine("Start");
-                    var x1 = res.BBox[0];
-                    var y1 = res.BBox[1];
-                    var x2 = res.BBox[2];
-                    var y2 = res.BBox[3];
-                    System.Drawing.Rectangle rec = new System.Drawing.Rectangle((int)x1, (int)y1, (int)(x2 - x1), (int)(y2 - y1));
-                    Bitmap nb = bitmap.Clone(rec, bitmap.PixelFormat);
-                  
-                    MemoryStream stream = new MemoryStream();
-                    nb.Save(stream, ImageFormat.Bmp);
-                    
-                    string findRequest = null;
-                    lock (db)
-                        findRequest = db.FindPicture(stream.ToArray(), Encoding.UTF8.GetBytes(rec.ToString()), res.Label);
-                    if (string.IsNullOrEmpty(findRequest))
-                    {
-                        db.AddPictureInfo(stream.ToArray(), Encoding.UTF8.GetBytes(rec.ToString()), res.Label);
-                        
-                    }
-                    if (ListBoxResultInfo.Items.IndexOf(res.Label) == -1)
-                    {
-                        ListBoxResultInfo.Items.Add(res.Label);
-                        OnPropertyChanged(nameof(ListBoxResultInfo));
-                    }
-                }
-                
-
-                OnPropertyChanged(nameof(ListBoxResultInfo));
+                ListBoxPictures.Items.Add(new { Img = bitmapImage });
             }
         }
 
@@ -131,27 +114,7 @@ namespace WpfTask2Core
             if (ListBoxResultInfo.Items.Count > 0)
             {
                 ListBoxPictures.Items.Clear();
-                var result = db.GetPicturesByType(ListBoxResultInfo.SelectedItem.ToString()).ToList();
-                foreach (var elem in result)
-                {
-
-                    byte[] byte_img = elem;
-                    MemoryStream ms = new MemoryStream(byte_img);
-                    var bmp = Bitmap.FromStream(ms) as Bitmap;
-                    var memory = new MemoryStream();
-                    bmp.Save(memory, ImageFormat.Png);
-                    memory.Position = 0;
-
-                    var bitmapImage = new BitmapImage();
-                    bitmapImage.BeginInit();
-                    bitmapImage.StreamSource = memory;
-                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmapImage.EndInit();
-                    bitmapImage.Freeze();
-
-                    ListBoxPictures.Items.Add(new { Img = bitmapImage });
-
-                }
+                client.GetPicturesByType(ListBoxResultInfo.SelectedItem.ToString());
             }
         }
 

@@ -76,8 +76,7 @@ namespace Server.Controllers
         [HttpDelete]
         public void Delete()
         {
-            lock (pictureLibraryContext)
-                pictureLibraryContext.ClearDB();
+            pictureLibraryContext.ClearDB();
         }
     }
 
@@ -96,6 +95,40 @@ namespace Server.Controllers
         {
             return pictureLibraryContext.GetAllContent().ToArray();
         }
+        /*[HttpPut]
+        
+        public IEnumerable<string> Put(string type) //[FromBody]
+        {
+            var result = pictureLibraryContext.GetPicturesByType(type).ToList();
+            //return result;
+            //return Convert.ToBase64String(result);
+            foreach (var image in result)
+                yield return Convert.ToBase64String(image);
+        }   */
+        //public IEnumerable<byte[]> Put(string type) //[FromBody]
+/*public List<byte[]> Put(string type) //[FromBody]*/
     }
 
+    [ApiController]
+    [Route("api/[controller]")]
+    public class TypeController : ControllerBase
+    {
+        private PictureLibraryContext pictureLibraryContext;
+
+        public TypeController(PictureLibraryContext pictureLibraryContext)
+        {
+            this.pictureLibraryContext = pictureLibraryContext;
+        }
+
+        [HttpGet("{type}")]
+        public List<string> Get(string type) //[FromBody]
+        {
+            List<string> pictures = new List<string>();
+            var result = pictureLibraryContext.GetPicturesByType(type).ToList();
+            foreach (var image in result)
+                pictures.Add(Convert.ToBase64String(image));
+            return pictures;
+                
+        }
+    }
 }

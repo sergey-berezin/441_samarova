@@ -22,8 +22,27 @@ namespace WpfTask2Core
         ConcurrentQueue<ResultInfo> arResult;
         public event Action OnServerIsUnreacheble;
         public event Action<string> OnProcessedPicture;
+        public event Action<string> OnReadPicture;
 
         private HttpClient httpClient = new HttpClient();
+        public async void GetPicturesByType(string type)
+        {
+            try
+            {
+                await httpClient.GetAsync("http://localhost:5000/api/Type");
+            }
+            catch
+            {
+                OnServerIsUnreacheble();
+                return;
+            }
+            var c = new StringContent(type);
+            c.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            var result = await httpClient.GetAsync("http://localhost:5000/api/type/" + type);
+            string[] pictures = JsonConvert.DeserializeObject<string[]>(await result.Content.ReadAsStringAsync());
+            foreach (string picture in pictures)
+                OnReadPicture( picture);
+        }
         public async void ScanDirectory(string imageFolder)
         {
             try
